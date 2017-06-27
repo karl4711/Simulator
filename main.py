@@ -15,6 +15,9 @@ def run(robot):
 
 if __name__ == "__main__":
 
+
+	# run(r1)
+
 	pool = ThreadPool(4) 
 	results = pool.map(run, robots)
 

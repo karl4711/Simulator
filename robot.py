@@ -2,6 +2,7 @@ import time
 import random
 from enum import Enum
 import requests
+from pdb import set_trace
 
 engagement_addr = 'http://127.0.0.1:4711/engagement/%s/%s'
 
@@ -64,14 +65,48 @@ class Robot(object):
         self.time_before_transaction = self.transaction_interval
 
 
+    def __repr__(self):
+        return """Robot %s -
+        [online_time : %s
+        ad_open_probability : %s
+        mission_complete_probability : %s
+        transaction_interval : %s
+        last_online_time : %s
+        last_offline_time : %s
+        is_online : %s
+        is_in_mission : %s
+        current_mission_time : %s
+        current_rest_time : %s
+        time_before_transaction : %s]
+
+        """ % (self.name, self.online_time,\
+        self.ad_open_probability,\
+        self.mission_complete_probability,\
+        self.transaction_interval,\
+        self.last_online_time,\
+        self.last_offline_time,\
+        self.is_online,\
+        self.is_in_mission,\
+        self.current_mission_time,\
+        self.current_rest_time,\
+        self.time_before_transaction,)
+
     def start(self):
         current_time = time.time()
+        self.send_engagement(Engagements.online)
         self.last_online_time = current_time
         self.is_online = True
+
+        print_interval = 20
+        current_run_time = 0
 
         while True:
             self.update()
             time.sleep(1)
+            current_run_time += 1
+
+            if current_run_time % print_interval == 0:
+                print('current_run_time: ', current_run_time, '\n', self)
             
 
     def update(self):
@@ -115,24 +150,21 @@ class Robot(object):
 
 
     def handle_response(self, response):
-
-        if response == Responses.show_ad:
+        if response == Responses.show_ad.name:
             if random.randint(0,100) > self.ad_open_probability:
                 self.send_event(Events.ad_closed)
             else:
                 self.send_event(Events.ad_opened)
 
-        elif response == Responses.send_award:
+        elif response == Responses.send_award.name:
             self.online_time = increase(self.online_time)
             self.transaction_interval = increase(self.transaction_interval)
 
-        elif response == Responses.increase_difficulty:
+        elif response == Responses.increase_difficulty.name:
             self.mission_complete_probability = decrease(self.mission_complete_probability)
-
-        elif response == Responses.decrease_difficulty:
+        elif response == Responses.decrease_difficulty.name:
             self.mission_complete_probability = increase(self.mission_complete_probability)
-
-        elif response == Responses.goods_recommend:
+        elif response == Responses.goods_recommend.name:
             if random.randint(0,100) > self.transaction_interval:
                 self.send_event(Events.transaction)
             else:
